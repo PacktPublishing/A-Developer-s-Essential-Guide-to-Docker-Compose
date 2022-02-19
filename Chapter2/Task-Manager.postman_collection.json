@@ -1,0 +1,104 @@
+{
+	"info": {
+		"_postman_id": "8ff6d38a-428b-4178-8203-1b3a2f9cf7dd",
+		"name": "A-Developer-s-Essential-Guide-to-Docker-Compose",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Tasks",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/task",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"task"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Task",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/task/{{id}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"task",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post Task",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"{{id}}\",\n    \"name\": \"A task\",\n    \"description\": \"A task that need to be executed at the timestamp specified\",\n    \"timestamp\": 1645275972000\n}"
+				},
+				"url": {
+					"raw": "{{host}}/task/",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"task",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "id",
+			"value": "8b171ce0-6f7b-4c22-aa6f-8b110c19f83a",
+			"type": "string"
+		}
+	]
+}
