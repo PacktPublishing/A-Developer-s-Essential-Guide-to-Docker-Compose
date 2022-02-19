@@ -67,6 +67,24 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Delete Task",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/task/{{id}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"task",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"event": [

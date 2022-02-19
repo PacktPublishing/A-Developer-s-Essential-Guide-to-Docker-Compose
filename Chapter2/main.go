@@ -57,6 +57,12 @@ func setupRouter() *gin.Engine {
 
 	})
 
+	r.DELETE("/task/:id", func(c *gin.Context) {
+		id := c.Params.ByName("id")
+		delete(taskMap, id)
+		c.JSON(http.StatusOK, gin.H{"id": id, "message": "deleted"})
+	})
+
 	return r
 }
 
