@@ -14,6 +14,16 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+  redis-populate:
+    image: redis
+    entrypoint: ["/redis-populate.sh","/redis-populate.txt"]
+    depends_on:
+      - redis
+    env_file:
+      - ./env.redis-populate
+    volumes:
+      - ./redis-populate.txt:/redis-populate.txt
+      - ./redis-populate.sh:/redis-populate.sh
   redis:
     image: redis
     ports:

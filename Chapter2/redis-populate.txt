@@ -1,0 +1,2 @@
+HMSET task:a3a597d1-26f8-43e5-be05-81373f2c0dc3 Id a3a597d1-26f8-43e5-be05-81373f2c0dc3 Name "Existing Task" Description "A task that was here before" Timestamp 1645393434000
+ZADD tasks 1645393434000 "a3a597d1-26f8-43e5-be05-81373f2c0dc3"
