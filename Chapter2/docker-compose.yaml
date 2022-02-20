@@ -6,6 +6,12 @@ services:
       - 8080:8080
     environment:
       - REDIS_HOST=redis:6379
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
   redis:
     image: redis
     ports:
