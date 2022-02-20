@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -19,9 +20,9 @@ type Task struct {
 
 var (
 	client = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
+		Addr:     getStrEnv("REDIS_HOST", "localhost:6379"),
+		Password: getStrEnv("REDIS_PASSWORD", ""),
+		DB:       getIntEnv("REDIS_DB", 0),
 	})
 	taskMap = make(map[string]Task)
 )
@@ -139,7 +140,7 @@ func deleteTask(c context.Context, id string) error {
 }
 
 func fetchTasks(c context.Context) ([]*Task, error) {
-	var tasks []*Task
+	var tasks []*Task = make([]*Task, 0)
 
 	zRange := client.ZRange(c, "tasks", 0, -1)
 
@@ -164,7 +165,27 @@ func fetchTasks(c context.Context) ([]*Task, error) {
 	return tasks, nil
 }
 
+func getIntEnv(key string, defaultvaule int) int {
+	if value := os.Getenv(key); len(value) == 0 {
+		return defaultvaule
+	} else {
+		if i, err := strconv.Atoi(value); err == nil {
+			return i
+		} else {
+			return defaultvaule
+		}
+	}
+}
+
+func getStrEnv(key string, defaultValue string) string {
+	if value := os.Getenv(key); len(value) == 0 {
+		return defaultValue
+	} else {
+		return value
+	}
+}
+
 func main() {
 	r := setupRouter()
-	r.Run(":8080")
+	r.Run(getStrEnv("TASK_MANAGER_HOST", ":8080"))
 }
