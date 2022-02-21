@@ -1,6 +1,9 @@
 services:
   task-manager:
-    build: .
+    build:
+      context: .
+      labels:
+        - com.packtpub.compose.app=task-manager
     image: task-manager:0.1
     ports:
       - 8080:8080
@@ -14,6 +17,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    labels:
+      - com.packtpub.compose.app=task-manager
   redis-populate:
     image: redis
     entrypoint: ["/redis-populate.sh","/redis-populate.txt"]
@@ -24,7 +29,11 @@ services:
     volumes:
       - ./redis-populate.txt:/redis-populate.txt
       - ./redis-populate.sh:/redis-populate.sh
+    labels:
+      - com.packtpub.compose.app=task-manager
   redis:
     image: redis
     ports:
       - 6379:6379
+    labels:
+      - com.packtpub.compose.app=task-manager
