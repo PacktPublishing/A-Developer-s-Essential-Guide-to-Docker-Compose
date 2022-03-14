@@ -1,15 +1,39 @@
 services:
+  task-manager:
+    build:
+      context: ../Chapter2/.
+      labels:
+        - com.packtpub.compose.app=task-manager
+    image: task-manager:0.1
+    ports:
+      - 8080:8080
+    environment:
+      - REDIS_HOST=redis:6379
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - task-manager-pubic-network
+    labels:
+      - com.packtpub.compose.app=task-manager
   redis:
     image: redis
     ports:
       - 6379:6379
     entrypoint: ["redis-server","/usr/local/etc/redis/redis.conf"]
-    labels:
-      - com.packtpub.compose.app=task-manager
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
       - redis-data:/data
       - backup:/backup
+    networks:
+      - task-manager-pubic-network  
+    labels:
+      - com.packtpub.compose.app=task-manager
   redis-backup:
     image: bash
     entrypoint: ["/snapshot-backup.sh"]
@@ -19,8 +43,20 @@ services:
       - BACKUP_PERIOD=10
     volumes:
       - ./snapshot-backup.sh:/snapshot-backup.sh
-      - redis-data:/data,readonly
+      - redis-data:/data:ro
       - backup:/backup
+    networks:
+      - task-manager-pubic-network
+    labels:
+      - com.packtpub.compose.app=task-manager
 volumes:
   redis-data:
+    labels:
+      - com.packtpub.compose.app=task-manager
   backup:
+    labels:
+      - com.packtpub.compose.app=task-manager
+networks:
+  task-manager-pubic-network:
+    labels:
+      - com.packtpub.compose.app=task-manager
