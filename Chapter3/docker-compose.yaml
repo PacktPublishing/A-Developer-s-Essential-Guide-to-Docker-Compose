@@ -19,6 +19,7 @@ services:
       start_period: 5s
     networks:
       - task-manager-pubic-network
+      - redis-network
     labels:
       - com.packtpub.compose.app=task-manager
   redis:
@@ -31,7 +32,7 @@ services:
       - redis-data:/data
       - backup:/backup
     networks:
-      - task-manager-pubic-network  
+      - redis-network
     labels:
       - com.packtpub.compose.app=task-manager
   redis-backup:
@@ -58,5 +59,8 @@ volumes:
       - com.packtpub.compose.app=task-manager
 networks:
   task-manager-pubic-network:
+    labels:
+      - com.packtpub.compose.app=task-manager
+  redis-network:
     labels:
       - com.packtpub.compose.app=task-manager
