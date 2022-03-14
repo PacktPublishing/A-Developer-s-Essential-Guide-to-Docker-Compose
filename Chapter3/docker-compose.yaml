@@ -1,0 +1,26 @@
+services:
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    entrypoint: ["redis-server","/usr/local/etc/redis/redis.conf"]
+    labels:
+      - com.packtpub.compose.app=task-manager
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-data:/data
+      - backup:/backup
+  redis-backup:
+    image: bash
+    entrypoint: ["/snapshot-backup.sh"]
+    depends_on:
+      - redis
+    environment:
+      - BACKUP_PERIOD=10
+    volumes:
+      - ./snapshot-backup.sh:/snapshot-backup.sh
+      - redis-data:/data,readonly
+      - backup:/backup
+volumes:
+  redis-data:
+  backup:
