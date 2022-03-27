@@ -1,0 +1,13 @@
+services:
+  task-manager:
+    build:
+      context: ../Chapter2/.
+    image: docker.io/library/chapter4_task-manager
+    ports:
+      - 8080:8080
+    environment:
+      - REDIS_HOST=redis:6379
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
