@@ -1,0 +1,150 @@
+{
+	"info": {
+		"_postman_id": "3b0ffbd0-b914-4610-9e1e-491af2447253",
+		"name": "Location Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Location",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/location/{{id}}",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"location",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post Location",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\":\"{{id}}\",\n\t\"name\": \"Liverpoll Street Station\",\n    \"description\": \"Station for Tube and National Rail\",\n\t\"longitude\": -0.082966,\n    \"latitude\": 51.517336\n}"
+				},
+				"url": {
+					"raw": "localhost:8080/location/",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"location",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Nearby Locations",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/location/nearby?longitude={{longitude}}&latitude={{latitude}}&distance={{distance}}&unit={{unit}}&",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"location",
+						"nearby"
+					],
+					"query": [
+						{
+							"key": "longitude",
+							"value": "{{longitude}}"
+						},
+						{
+							"key": "latitude",
+							"value": "{{latitude}}"
+						},
+						{
+							"key": "distance",
+							"value": "{{distance}}"
+						},
+						{
+							"key": "unit",
+							"value": "{{unit}}"
+						},
+						{
+							"key": "",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "id",
+			"value": "0c2e2081-075d-443a-ac20-40bf3b320a6f",
+			"type": "string"
+		},
+		{
+			"key": "unit",
+			"value": "km",
+			"type": "string"
+		},
+		{
+			"key": "distance",
+			"value": "5",
+			"type": "string"
+		},
+		{
+			"key": "latitude",
+			"value": "51.5055",
+			"type": "string"
+		},
+		{
+			"key": "longitude",
+			"value": "-0.0197",
+			"type": "string"
+		}
+	]
+}
