@@ -88,7 +88,12 @@ func setupRouter() *gin.Engine {
 			return
 		}
 
-		unit := c.Params.ByName("unit")
+		var unit string
+		if value, exists := c.Params.Get("unit"); exists {
+			unit = value
+		} else {
+			unit = "km"
+		}
 
 		distance, err := strconv.ParseFloat(c.Request.URL.Query().Get("distance"), 64)
 
