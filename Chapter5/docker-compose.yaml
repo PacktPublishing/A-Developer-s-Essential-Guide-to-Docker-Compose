@@ -15,5 +15,13 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    networks:
+      - location-network
+      - redis-network
   redis:
     image: redis
+    networks:
+      - redis-network
+networks:
+  location-network:
+  redis-network:
