@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -47,10 +46,7 @@ func main() {
 
 	ctx := context.Background()
 
-	if _, err := client.XGroupCreate(ctx, stream, consumerGroup, "0").Result(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		log.Fatal(err)
-	}
+	client.XGroupCreate(ctx, stream, consumerGroup, "0").Result()
 
 	for {
 		entries, err := client.XReadGroup(ctx,
