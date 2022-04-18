@@ -1,0 +1,11 @@
+scrape_configs: 
+  - job_name: 'task-manager' 
+    scrape_interval: 1m 
+    metrics_path: '/metrics' 
+    static_configs: 
+      - targets: ['task-manager:8080'] 
+  - job_name: 'location-service' 
+    scrape_interval: 1m 
+    metrics_path: '/metrics' 
+    static_configs: 
+      - targets: ['location-service:8080'] 
