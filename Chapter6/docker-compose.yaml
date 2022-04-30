@@ -1,0 +1,77 @@
+services: 
+  location-service: 
+    build: 
+      context: ./location-service/
+    image: location-service:0.1 
+    environment: 
+      - REDIS_HOST=redis:6379 
+    depends_on: 
+      - redis 
+    networks: 
+      - location-network 
+      - redis-network
+      - monitoring-network
+    healthcheck: 
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"] 
+      interval: 10s 
+      timeout: 5s 
+      retries: 5 
+      start_period: 5s 
+  task-manager: 
+    build: 
+      context: ./task-manager/
+    image: task-manager:0.1
+    ports: 
+      - 8080:8080 
+    environment: 
+      - REDIS_HOST=redis:6379 
+      - LOCATION_HOST=http://location-service:8080
+    depends_on: 
+      - redis 
+      - location-service
+    networks: 
+      - location-network 
+      - redis-network 
+      - monitoring-network
+    healthcheck: 
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"] 
+      interval: 10s 
+      timeout: 5s 
+      retries: 5 
+      start_period: 5s 
+  redis: 
+    image: redis 
+    networks:
+      - redis-network
+  event-service: 
+    build: 
+      context: ./events-service/
+    image: event-service:0.1 
+    environment: 
+      - REDIS_HOST=redis:6379 
+      - PUSH_GATEWAY=push-gateway:9091
+    depends_on: 
+      - redis 
+    networks: 
+      - redis-network
+      - monitoring-network
+  prometheus:
+    image: prom/prometheus
+    ports: 
+      - 9090:9090
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring-network
+    depends_on:
+      - task-manager
+  push-gateway:
+    image: prom/pushgateway
+    networks:
+      - monitoring-network
+    ports: 
+      - 9091:9091
+networks:
+  location-network:
+  redis-network:
+  monitoring-network:

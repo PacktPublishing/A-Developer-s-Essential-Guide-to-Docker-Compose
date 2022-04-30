@@ -9,3 +9,8 @@ scrape_configs:
     metrics_path: '/metrics' 
     static_configs: 
       - targets: ['location-service:8080'] 
+  - job_name: 'push-gateway' 
+    scrape_interval: 1m 
+    metrics_path: '/metrics' 
+    static_configs: 
+      - targets: ['push-gateway:9091'] 
