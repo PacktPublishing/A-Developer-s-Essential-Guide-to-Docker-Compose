@@ -69,8 +69,6 @@ services:
     image: prom/pushgateway
     networks:
       - monitoring-network
-    ports: 
-      - 9091:9091
 networks:
   location-network:
   redis-network:
