@@ -41,24 +41,37 @@ func getStrEnv(key string, defaultValue string) string {
 	}
 }
 
-func pushProcessingDurationToPrometheus(duration time.Duration) {
-	processingTime := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "task_event_process_duration",
-		Help: "The timestamp of the last successful completion of a DB backup.",
-	})
-
-	millis := float64(duration.Milliseconds())
-	processingTime.Set(millis)
-
-	if err := push.New(getStrEnv("PUSH_GATEWAY", "http://localhost:9091"), "event_service").
+func pushProcessingDurationToPrometheus(processingTime prometheus.Gauge) {
+	if err := push.New(getStrEnv("PUSH_GATEWAY", "http://localhost:9091"), "task_event_process_duration").
 		Collector(processingTime).
-		Grouping("db", "customers").
+		Grouping("db", "event-service").
 		Push(); err != nil {
 		fmt.Println("Could not push completion time to Pushgateway:", err)
 	}
 }
 
+func pushProcessingCount(processedCounter prometheus.Counter) {
+	if err := push.New(getStrEnv("PUSH_GATEWAY", "http://localhost:9091"), "task_event_processing_total").
+		Collector(processedCounter).
+		Grouping("db", "event-service").
+		Push(); err != nil {
+		fmt.Println("Could not push tasks processed to Pushgateway:", err)
+	}
+}
+
 func main() {
+	processingTime := prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "task_event_process_duration",
+		Help: "Time it took to complete a task",
+	})
+
+	processedCounter := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "task_event_processing_total",
+			Help: "How many tasks have been processed",
+		},
+		[]string{"task"},
+	).WithLabelValues("task")
 
 	stream := "task-stream"
 	consumerGroup := "analytics-group"
@@ -99,7 +112,13 @@ func main() {
 			client.XAck(ctx, stream, consumerGroup, messageID)
 			elapsed := time.Since(start)
 
-			pushProcessingDurationToPrometheus(elapsed)
+			processedCounter.Add(1)
+
+			millis := float64(elapsed.Milliseconds())
+			processingTime.Set(millis)
+
+			pushProcessingDurationToPrometheus(processingTime)
+			pushProcessingCount(processedCounter)
 		}
 	}
 
