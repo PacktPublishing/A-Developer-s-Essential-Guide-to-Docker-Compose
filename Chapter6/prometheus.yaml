@@ -14,3 +14,5 @@ scrape_configs:
     metrics_path: '/metrics' 
     static_configs: 
       - targets: ['push-gateway:9091'] 
+rule_files:
+  - '/etc/prometheus/alerts.yaml'
