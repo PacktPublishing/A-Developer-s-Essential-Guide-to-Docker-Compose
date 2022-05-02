@@ -19,6 +19,17 @@ var (
 		Password: getStrEnv("REDIS_PASSWORD", ""),
 		DB:       getIntEnv("REDIS_DB", 0),
 	})
+	processingTime = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "task_event_process_duration",
+		Help: "Time it took to complete a task",
+	})
+	processedCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "task_event_processing_total",
+			Help: "How many tasks have been processed",
+		},
+		[]string{"task"},
+	).WithLabelValues("task")
 )
 
 func getIntEnv(key string, defaultvaule int) int {
@@ -60,18 +71,6 @@ func pushProcessingCount(processedCounter prometheus.Counter) {
 }
 
 func main() {
-	processingTime := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "task_event_process_duration",
-		Help: "Time it took to complete a task",
-	})
-
-	processedCounter := prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "task_event_processing_total",
-			Help: "How many tasks have been processed",
-		},
-		[]string{"task"},
-	).WithLabelValues("task")
 
 	stream := "task-stream"
 	consumerGroup := "analytics-group"
