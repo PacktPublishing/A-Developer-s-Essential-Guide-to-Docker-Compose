@@ -1,0 +1,13 @@
+services: 
+  event-service: 
+    build: 
+      context: ./events-service/
+    image: event-service:0.1 
+    environment: 
+      - REDIS_HOST=redis:6379 
+      - PUSH_GATEWAY=push-gateway:9091
+    depends_on: 
+      - redis 
+    networks: 
+      - redis-network
+      - monitoring-network
