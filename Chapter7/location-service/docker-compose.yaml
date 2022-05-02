@@ -1,0 +1,19 @@
+services: 
+  location-service: 
+    build: 
+      context: ./location-service/
+    image: location-service:0.1 
+    environment: 
+      - REDIS_HOST=redis:6379 
+    depends_on: 
+      - redis 
+    networks: 
+      - location-network 
+      - redis-network
+      - monitoring-network
+    healthcheck: 
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"] 
+      interval: 10s 
+      timeout: 5s 
+      retries: 5 
+      start_period: 5s 
