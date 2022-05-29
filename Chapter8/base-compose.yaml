@@ -1,0 +1,3 @@
+networks:
+  aws-internal:
+  aws-public:
