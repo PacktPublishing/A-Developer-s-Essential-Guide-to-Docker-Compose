@@ -1,7 +1,7 @@
 services: 
   location-service: 
     build: 
-      context: ./location-service/
+      context: location-service
     image: location-service:0.1 
     environment: 
       - REDIS_HOST=redis:6379 
