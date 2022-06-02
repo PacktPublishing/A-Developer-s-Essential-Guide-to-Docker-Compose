@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/private/protocol/json/jsonutil"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -61,19 +60,12 @@ func isSimulated() bool {
 	return true
 }
 
-func createSession() (*session.Session, error) {
-	return session.NewSession(&aws.Config{
-		Region:      aws.String("us-west-2"),
-		Credentials: credentials.NewStaticCredentials("fakeMyKeyId", "fakeSecretAccessKey", ""),
-	})
+func createSession() *session.Session {
+	return session.New()
 }
 
 func dynamoDBSession() (*dynamodb.DynamoDB, error) {
-	session, err := createSession()
-
-	if err != nil {
-		return nil, err
-	}
+	session := createSession()
 
 	if isSimulated() {
 		return dynamodb.New(session, aws.NewConfig().WithEndpoint(os.Getenv("DYNAMODB_ENDPOINT")).WithRegion("eu-west-2")), nil
@@ -107,11 +99,7 @@ func sendToSQS(subscribe Subscribe) {
 }
 
 func sqsSession() (*sqs.SQS, error) {
-	session, err := createSession()
-
-	if err != nil {
-		return nil, err
-	}
+	session := createSession()
 
 	return sqs.New(session, aws.NewConfig().WithEndpoint(os.Getenv("SQS_ENDPOINT")).WithRegion("eu-west-2")), nil
 }
