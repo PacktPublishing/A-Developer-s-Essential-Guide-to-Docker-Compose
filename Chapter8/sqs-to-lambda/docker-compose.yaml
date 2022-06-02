@@ -1,0 +1,17 @@
+services:
+  sqs-to-lambda:
+    build: 
+      context: ./sqs-to-lambda/
+    image: sqs-to-lambda
+    environment:
+     - SQS_ENDPOINT=http://sqs:9324
+     - SQS_TOPIC=/000000000000/subscription-event
+    depends_on:
+      - sqs
+      - newsletter-lambda
+    env_file:
+      - ./mock_crentials.env
+    networks:
+      aws-internal:
+networks:
+  aws-internal:
