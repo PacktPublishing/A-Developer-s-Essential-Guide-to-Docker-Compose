@@ -1,3 +1,38 @@
+services:
+  sqs:
+    image: softwaremill/elasticmq
+    ports:
+     - 9324:9324
+     - 9325:9325
+    networks:
+     - aws-internal
+    volumes:
+      - ./sqs.conf:/opt/elasticmq.conf
+  dynamodb:
+    image: amazon/dynamodb-local
+    ports:
+     - 8000:8000
+    networks:
+     - aws-internal
+  dynamodb-initializer:
+    image: amazon/aws-cli
+    env_file:
+      - ./mock_crentials.env
+    entrypoint: "/create_table.sh"
+    depends_on:
+      - dynamodb
+    volumes:
+      - ./create_table.sh:/create_table.sh
+    networks:
+     - aws-internal  
+  s3:
+    image: adobe/s3mock
+    ports:
+     - 9090:9090
+    networks:
+     - aws-internal
+    environment:
+      - initialBuckets=subscription-bucket
 networks:
   aws-internal:
   aws-public:
