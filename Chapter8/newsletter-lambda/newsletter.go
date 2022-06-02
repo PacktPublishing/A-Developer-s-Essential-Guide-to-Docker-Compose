@@ -60,12 +60,8 @@ func isSimulated() bool {
 	return true
 }
 
-func createSession() *session.Session {
-	return session.New()
-}
-
 func dynamoDBSession() (*dynamodb.DynamoDB, error) {
-	session := createSession()
+	session, _ := session.NewSession()
 
 	if isSimulated() {
 		return dynamodb.New(session, aws.NewConfig().WithEndpoint(os.Getenv("DYNAMODB_ENDPOINT")).WithRegion("eu-west-2")), nil
@@ -99,11 +95,10 @@ func sendToSQS(subscribe Subscribe) {
 }
 
 func sqsSession() (*sqs.SQS, error) {
-	session := createSession()
+	session, _ := session.NewSession()
 
 	return sqs.New(session, aws.NewConfig().WithEndpoint(os.Getenv("SQS_ENDPOINT")).WithRegion("eu-west-2")), nil
 }
-
 func main() {
 	lambda.Start(HandleRequest)
 }
