@@ -103,6 +103,7 @@ func sqsSession() (*sqs.SQS, error) {
 
 	return sqs.New(session, aws.NewConfig().WithEndpoint(os.Getenv("SQS_ENDPOINT")).WithRegion("eu-west-2")), nil
 }
+
 func main() {
 	lambda.Start(HandleRequest)
 }
