@@ -1,0 +1,23 @@
+services:
+  newsletter-lambda:
+    build: 
+      context: ./newsletter-lambda/
+    image: newsletter_lambda
+    ports:
+     - 8080:8080
+    environment:
+     - SIMULATED=true
+     - DYNAMODB_ENDPOINT=http://dynamodb:8000
+     - SQS_ENDPOINT=http://sqs:9324
+     - SQS_TOPIC=/000000000000/subscription-event
+    depends_on:
+      - dynamodb
+      - sqs
+    env_file:
+      - ./mock_crentials.env
+    networks:
+      aws-internal:
+      aws-public:
+networks:
+  aws-internal:
+  aws-public:
