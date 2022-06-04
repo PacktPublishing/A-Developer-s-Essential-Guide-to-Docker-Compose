@@ -22,9 +22,10 @@ jobs:
       run: |
         cd Chapter8
         docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml build 
-    - name: Run application
+    - name: Test application
       run: |
         cd Chapter8
         docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml up -d
+        sleep 10
         curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{"email":"john@doe.com","topic":"Books"}'
         docker compose logs --tail=10
