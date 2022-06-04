@@ -1,0 +1,19 @@
+name: subscription-service
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: cd to subscription-service
+      run: cd Chapter8
+    - name: Build Containers
+      run: docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml build 
+
