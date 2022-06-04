@@ -12,8 +12,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: cd to subscription-service
+    - name: Build Images
       run: cd Chapter8
-    - name: Build Containers
       run: docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml build 
 
