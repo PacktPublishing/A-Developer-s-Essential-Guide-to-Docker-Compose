@@ -12,18 +12,17 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - name: Cache Local Images
+      id: local-images
+      uses: actions/cache@v3
+      with:
+        path: /var/lib/docker/
+        key: local-docker-directory
     - name: Build Images
       run: |
         cd Chapter8
         docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml build 
-      uses: actions/cache@v3
-      with:
-        path: /var/lib/docker/
-        key: registry
     - name: Run application
       run: |
         cd Chapter8
         docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml up
-      with:
-        path: /var/lib/docker/
-        key: registry
