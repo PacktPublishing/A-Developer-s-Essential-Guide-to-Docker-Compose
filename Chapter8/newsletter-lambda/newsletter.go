@@ -15,6 +15,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
+const (
+	DYNAMODB_ENDPOINT_ENV = "DYNAMODB_ENDPOINT"
+	SQS_TOPIC_ENV         = "SQS_TOPIC"
+	SIMULATED_ENV         = "SIMULATED"
+	AWS_REGION_ENV        = "AWS_DEFAULT_REGION"
+	SQS_ENDPOINT_ENV      = "SQS_ENDPOINT"
+)
+
 type Subscribe struct {
 	Email string `json:"email"`
 	Topic string `json:"topic"`
@@ -51,7 +59,7 @@ func HandleRequest(ctx context.Context, subscribe Subscribe) (string, error) {
 }
 
 func isSimulated() bool {
-	if value := os.Getenv("SIMULATED"); len(value) == 0 {
+	if value := os.Getenv(SIMULATED_ENV); len(value) == 0 {
 		return false
 	} else if value != "true" {
 		return false
@@ -64,7 +72,7 @@ func dynamoDBSession() (*dynamodb.DynamoDB, error) {
 	session, _ := session.NewSession()
 
 	if isSimulated() {
-		return dynamodb.New(session, aws.NewConfig().WithEndpoint(os.Getenv("DYNAMODB_ENDPOINT")).WithRegion("eu-west-2")), nil
+		return dynamodb.New(session, aws.NewConfig().WithEndpoint(os.Getenv(DYNAMODB_ENDPOINT_ENV)).WithRegion(os.Getenv(AWS_REGION_ENV))), nil
 	} else {
 		return dynamodb.New(session), nil
 	}
@@ -79,7 +87,7 @@ func sendToSQS(subscribe Subscribe) {
 		if bytes, err := jsonutil.BuildJSON(subscribe); err == nil {
 			smsInput := &sqs.SendMessageInput{
 				MessageBody: aws.String(string(bytes)),
-				QueueUrl:    aws.String(os.Getenv("SQS_TOPIC")),
+				QueueUrl:    aws.String(os.Getenv(SQS_TOPIC_ENV)),
 			}
 
 			if _, err := session.SendMessage(smsInput); err != nil {
@@ -97,8 +105,9 @@ func sendToSQS(subscribe Subscribe) {
 func sqsSession() (*sqs.SQS, error) {
 	session, _ := session.NewSession()
 
-	return sqs.New(session, aws.NewConfig().WithEndpoint(os.Getenv("SQS_ENDPOINT")).WithRegion("eu-west-2")), nil
+	return sqs.New(session, aws.NewConfig().WithEndpoint(os.Getenv(SQS_ENDPOINT_ENV)).WithRegion(os.Getenv(AWS_REGION_ENV))), nil
 }
+
 func main() {
 	lambda.Start(HandleRequest)
 }
