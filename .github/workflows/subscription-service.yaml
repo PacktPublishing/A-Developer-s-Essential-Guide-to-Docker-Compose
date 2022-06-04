@@ -13,6 +13,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Build Images
-      run: cd Chapter8
-      run: docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml build 
+      run: |
+        cd Chapter8
+        docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml build 
 
