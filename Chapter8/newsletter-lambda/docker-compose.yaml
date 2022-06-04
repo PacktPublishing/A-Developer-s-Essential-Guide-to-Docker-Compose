@@ -11,13 +11,10 @@ services:
      - SQS_ENDPOINT=http://sqs:9324
      - SQS_TOPIC=/000000000000/subscription-event
     depends_on:
-      - dynamodb
+      - dynamodb-initializer
       - sqs
     env_file:
       - ./mock_crentials.env
     networks:
       aws-internal:
       aws-public:
-networks:
-  aws-internal:
-  aws-public:
