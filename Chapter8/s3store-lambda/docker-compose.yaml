@@ -1,0 +1,18 @@
+services:
+  s3store-lambda:
+    build: 
+      context: ./s3store-lambda/
+    image: s3store-lambda
+    environment:
+     - SIMULATED=true
+     - S3_ENDPOINT=http://s3:9090
+     - SUBSCRIPTION_BUCKET=subscription-bucket
+     - AWS_REGION=eu-west-2
+    links:
+    -  "s3:subscription-bucket.s3"
+    depends_on:
+      - s3
+    env_file:
+      - ./mock_crentials.env
+    networks:
+      aws-internal:
