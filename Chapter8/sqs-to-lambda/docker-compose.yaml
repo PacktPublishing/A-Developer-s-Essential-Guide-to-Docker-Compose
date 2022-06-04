@@ -6,9 +6,10 @@ services:
     environment:
      - SQS_ENDPOINT=http://sqs:9324
      - SQS_TOPIC=/000000000000/subscription-event
+     - S3STORE_LAMBDA_ENDPOINT=http://s3store-lambda:8080/2015-03-31/functions/function/invocations
     depends_on:
       - sqs
-      - newsletter-lambda
+      - s3store-lambda
     env_file:
       - ./mock_crentials.env
     networks:

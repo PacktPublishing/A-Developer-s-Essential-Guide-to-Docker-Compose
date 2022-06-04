@@ -1,7 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/json"
+	"net/http"
 	"os"
 	"time"
 
@@ -10,10 +12,17 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
+const (
+	SQS_TOPIC_ENV               = "SQS_TOPIC"
+	AWS_REGION_ENV              = "AWS_DEFAULT_REGION"
+	SQS_ENDPOINT_ENV            = "SQS_ENDPOINT"
+	S3STORE_LAMBDA_ENDPOINT_ENV = "S3STORE_LAMBDA_ENDPOINT"
+)
+
 func sqsSession() (*sqs.SQS, error) {
 	session, _ := session.NewSession()
 
-	return sqs.New(session, aws.NewConfig().WithEndpoint(os.Getenv("SQS_ENDPOINT")).WithRegion("eu-west-2")), nil
+	return sqs.New(session, aws.NewConfig().WithEndpoint(os.Getenv(SQS_ENDPOINT_ENV)).WithRegion(os.Getenv(AWS_REGION_ENV))), nil
 }
 
 func main() {
@@ -21,14 +30,29 @@ func main() {
 
 	for {
 
+		queueUrl := aws.String(os.Getenv(SQS_TOPIC_ENV))
 		if msgResult, err := session.ReceiveMessage(&sqs.ReceiveMessageInput{
-			QueueUrl: aws.String(os.Getenv("SQS_TOPIC")),
+			QueueUrl: queueUrl,
 		}); err == nil {
-			if msgResult != nil {
-				for i := 0; i < len(msgResult.Messages); i++ {
-					fmt.Println(*msgResult.Messages[i].Body)
+
+			if msgResult != nil && len(msgResult.Messages) > 0 {
+				sqsEvent := map[string][]*sqs.Message{
+					"Records": msgResult.Messages,
 				}
 
+				marshalled, _ := json.Marshal(sqsEvent)
+
+				println(string(marshalled))
+
+				http.Post(os.Getenv(S3STORE_LAMBDA_ENDPOINT_ENV), "application/json", bytes.NewBuffer(marshalled))
+
+				for i := 0; i < len(msgResult.Messages); i++ {
+					session.DeleteMessage(&sqs.DeleteMessageInput{
+						QueueUrl:      queueUrl,
+						ReceiptHandle: msgResult.Messages[i].ReceiptHandle,
+					})
+
+				}
 			}
 		}
 		time.Sleep(1 * time.Second)
