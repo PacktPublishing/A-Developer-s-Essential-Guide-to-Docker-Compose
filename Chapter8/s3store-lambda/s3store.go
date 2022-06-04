@@ -44,6 +44,8 @@ func HandleRequest(ctx context.Context, sqsEvent events.SQSEvent) error {
 			Key:    aws.String(key),
 			Body:   bytes.NewReader(marshalled),
 		})
+
+		fmt.Println("Stored sqs event")
 	}
 
 	return nil
