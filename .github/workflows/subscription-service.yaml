@@ -19,10 +19,29 @@ jobs:
         path: /var/lib/docker/
         key: local-docker-directory
     - name: Build Images
+      working-directory: ./Chapter8
       run: |
-        cd Chapter8
         docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml build 
     - name: Test application
+      working-directory: ./Chapter8
+      run: |
+        docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml up -d
+        sleep 20
+        curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{"email":"john@doe.com","topic":"Books"}'
+        docker compose logs --tail="all"
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Cache Local Images
+      id: local-images
+      uses: actions/cache@v3
+      with:
+        path: /var/lib/docker/
+        key: local-docker-directory
+    - name: Push images
       run: |
         cd Chapter8
         docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml up -d
