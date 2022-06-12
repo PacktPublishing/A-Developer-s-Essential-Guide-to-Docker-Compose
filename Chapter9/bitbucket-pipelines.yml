@@ -1,0 +1,40 @@
+image: atlassian/default-image:3
+
+options:
+  docker: true
+  
+definitions:
+  caches:
+    compose: ~/.docker/cli-plugins
+
+pipelines:
+  default:
+    - step:
+        name: "Install Compose"
+        caches:
+          - compose
+        script:
+          - mkdir -p ~/.docker/cli-plugins/
+          - curl -SL https://github.com/docker/compose/releases/download/v2.2.3/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+          - chmod +x ~/.docker/cli-plugins/docker-compose
+          - docker compose version
+    - step:
+        name: "Chatper 8 Build Images"
+        caches:
+          - docker
+          - compose          
+        script:
+          - cd Chapter8
+          - docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml build
+    - step:
+        name: "Chatper 8 Test Application"
+        caches:
+          - docker
+          - compose          
+        script:
+          - cd Chapter8
+          - docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml up -d
+          - sleep 20
+          - curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{"email":"john@doe.com","topic":"Books"}'
+          - sleep 20          
+          - docker compose logs --tail="all"
