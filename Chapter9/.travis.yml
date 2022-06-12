@@ -1,0 +1,27 @@
+services:
+  - docker
+
+cache:
+  directories:
+    - $HOME/.docker/cli-plugins
+
+jobs:
+  include:
+    - stage: "Install Compose"
+      script:
+      - mkdir -p /home/travis/.docker/cli-plugins/
+      - curl -SL https://github.com/docker/compose/releases/download/v2.2.3/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+      - chmod +x ~/.docker/cli-plugins/docker-compose
+      - docker compose version
+    - stage: "Build Images"
+      script:
+      - cd Chapter8
+      - docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml build
+    - stage: "Test application"
+      script:
+        - cd Chapter8
+        - docker compose -f docker-compose.yaml -f newsletter-lambda/docker-compose.yaml -f s3store-lambda/docker-compose.yaml -f sqs-to-lambda/docker-compose.yaml up -d
+        - sleep 20
+        - curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{"email":"john@doe.com","topic":"Books"}'
+        - sleep 20
+        - docker compose logs --tail="all"
