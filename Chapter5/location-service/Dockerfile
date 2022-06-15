@@ -18,4 +18,4 @@ RUN go build -o /location_service
 EXPOSE 8080
 
 
-CMD [ "/location_service" ]%
+CMD [ "/location_service" ]
