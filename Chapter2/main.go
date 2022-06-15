@@ -24,7 +24,6 @@ var (
 		Password: getStrEnv("REDIS_PASSWORD", ""),
 		DB:       getIntEnv("REDIS_DB", 0),
 	})
-	taskMap = make(map[string]Task)
 )
 
 func setupRouter() *gin.Engine {
