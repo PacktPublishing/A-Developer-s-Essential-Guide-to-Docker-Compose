@@ -1,14 +1,36 @@
 services: 
   location-service: 
     build: 
-      context: ./location-service 
+      context: ./location-service/
     image: location-service:0.1 
-    ports: 
-      - :8080 
     environment: 
       - REDIS_HOST=redis:6379 
     depends_on: 
       - redis 
+    networks: 
+      - location-network 
+      - redis-network 
+    healthcheck: 
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"] 
+      interval: 10s 
+      timeout: 5s 
+      retries: 5 
+      start_period: 5s 
+  task-manager: 
+    build: 
+      context: ./task-manager/
+    image: task-manager:0.1
+    ports: 
+      - 8080:8080 
+    environment: 
+      - REDIS_HOST=redis:6379 
+      - LOCATION_HOST=http://location-service:8080
+    depends_on: 
+      - redis 
+      - location-service
+    networks: 
+      - location-network 
+      - redis-network 
     healthcheck: 
       test: ["CMD", "curl", "-f", "http://localhost:8080/ping"] 
       interval: 10s 
@@ -17,3 +39,18 @@ services:
       start_period: 5s 
   redis: 
     image: redis 
+    networks:
+      - redis-network
+  event-service: 
+    build: 
+      context: ./events-service/
+    image: event-service:0.1 
+    environment: 
+      - REDIS_HOST=redis:6379 
+    depends_on: 
+      - redis 
+    networks: 
+      - redis-network 
+networks:
+  location-network:
+  redis-network:
