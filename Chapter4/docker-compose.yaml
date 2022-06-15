@@ -2,7 +2,7 @@ services:
   task-manager:
     build:
       context: ../Chapter2/.
-    image: docker.io/library/chapter4_task-manager
+    image: host.docker.internal:5000/task-manager:0.1
     ports:
       - 8080:8080
     environment:
