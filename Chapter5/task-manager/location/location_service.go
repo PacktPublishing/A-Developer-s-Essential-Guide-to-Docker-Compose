@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -51,9 +50,11 @@ func (ls *LocationService) FindLocation(id string) (*Location, error) {
 		return nil, err
 	}
 
-	responseData, err := ioutil.ReadAll(respose.Body)
+	if respose.StatusCode == 404 {
+		return nil, nil
+	}
 
-	log.Println(string(responseData))
+	responseData, err := ioutil.ReadAll(respose.Body)
 
 	if err != nil {
 		return nil, err
