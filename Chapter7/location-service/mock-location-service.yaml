@@ -1,0 +1,11 @@
+services:
+  location-service:
+    image: spectolabs/hoverfly:v1.3.6
+    ports:
+      - 8888:8888
+    networks: 
+      - location-network 
+      - redis-network 
+    volumes:
+      - ./location-service/location-simulation.json:/etc/hoverfly/location-simulation.json
+    entrypoint: ["hoverfly","-webserver","-listen-on-host","0.0.0.0", "-import", "/etc/hoverfly/location-simulation.json","-pp","8080"]
