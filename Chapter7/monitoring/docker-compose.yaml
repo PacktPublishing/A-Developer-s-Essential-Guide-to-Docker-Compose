@@ -4,8 +4,8 @@ services:
     ports: 
       - 9090:9090
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
-      - ./alerts.yml:/etc/prometheus/alerts.yaml
+      - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yaml
     networks:
       - monitoring-network
     depends_on:
