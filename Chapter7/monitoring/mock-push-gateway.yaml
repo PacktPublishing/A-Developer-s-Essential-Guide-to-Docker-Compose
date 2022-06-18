@@ -1,0 +1,11 @@
+services: 
+  push-gateway:
+    image: spectolabs/hoverfly:v1.3.6
+    ports:
+      - 8888:8888
+    networks: 
+      - monitoring-network
+      - redis-network 
+    volumes:
+      - ./monitoring/push-gateway-simulation.json:/etc/hoverfly/push-gateway-simulation.json
+    entrypoint: ["hoverfly","-webserver","-listen-on-host","0.0.0.0", "-import", "/etc/hoverfly/push-gateway-simulation.json", "-pp","9091"]
