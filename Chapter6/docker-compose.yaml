@@ -61,6 +61,7 @@ services:
       - 9090:9090
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yaml
     networks:
       - monitoring-network
     depends_on:
