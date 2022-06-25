@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -31,9 +30,6 @@ type Subscribe struct {
 const TableName = "newsletter"
 
 func HandleRequest(ctx context.Context, subscribe Subscribe) (string, error) {
-
-	log.Printf(subscribe.Email + " " + subscribe.Topic)
-
 	if dynamoDb, err := dynamoDBSession(); err != nil {
 		return "Could not process request", err
 	} else {
