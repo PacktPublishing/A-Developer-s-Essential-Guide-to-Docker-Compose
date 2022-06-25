@@ -1,7 +1,7 @@
 services:
   task-manager: 
     build: 
-      context: ./task-manager/
+      context: task-manager
     image: task-manager:0.1
     ports: 
       - 8080:8080 
