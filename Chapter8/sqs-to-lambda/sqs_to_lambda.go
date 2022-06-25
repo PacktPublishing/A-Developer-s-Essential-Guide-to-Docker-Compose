@@ -41,9 +41,6 @@ func main() {
 				}
 
 				marshalled, _ := json.Marshal(sqsEvent)
-
-				println(string(marshalled))
-
 				http.Post(os.Getenv(S3STORE_LAMBDA_ENDPOINT_ENV), "application/json", bytes.NewBuffer(marshalled))
 
 				for i := 0; i < len(msgResult.Messages); i++ {
