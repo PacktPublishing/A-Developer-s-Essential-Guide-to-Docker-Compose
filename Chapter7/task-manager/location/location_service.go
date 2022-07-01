@@ -51,6 +51,10 @@ func (ls *LocationService) FindLocation(id string) (*Location, error) {
 		return nil, err
 	}
 
+	if respose.StatusCode == 404 {
+		return nil, nil
+	}
+
 	responseData, err := ioutil.ReadAll(respose.Body)
 
 	log.Println(string(responseData))
