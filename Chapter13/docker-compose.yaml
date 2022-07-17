@@ -3,7 +3,7 @@ version: '3'
 services: 
   location-service: 
     build: 
-      context: ./location-service/
+      context: ../Chapter5/location-service/
     image: location-service:0.1 
     environment: 
       - REDIS_HOST=redis:6379 
@@ -13,16 +13,15 @@ services:
       - location-network 
       - redis-network 
     ports: 
-      - containerPort: 8080
+      - 8080:8080
     healthcheck: 
       test: ["CMD", "curl", "-f", "http://localhost:8080/ping"] 
       interval: 10s 
       timeout: 5s 
       retries: 5 
-      start_period: 5s 
   task-manager: 
     build: 
-      context: ./task-manager/
+      context: ../Chapter5/task-manager/
     image: task-manager:0.1
     ports: 
       - 8080:8080 
@@ -40,16 +39,15 @@ services:
       interval: 10s 
       timeout: 5s 
       retries: 5 
-      # start_period: 5s 
   redis: 
     image: redis 
     networks:
       - redis-network
     ports: 
-      - containerPort: 6543
+      - 6379:6379
   event-service: 
     build: 
-      context: ./events-service/
+      context: ../Chapter5/events-service/
     image: event-service:0.1 
     environment: 
       - REDIS_HOST=redis:6379 
