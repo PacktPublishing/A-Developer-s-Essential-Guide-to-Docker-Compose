@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.26.1 (a9d05d509)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: event-service
+  name: event-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: event-service
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.26.1 (a9d05d509)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/redis-network: "true"
+        io.kompose.service: event-service
+    spec:
+      containers:
+        - env:
+            - name: REDIS_HOST
+              value: redis:6379
+          image: event-service:0.1
+          name: event-service
+          resources: {}
+      restartPolicy: Always
+status: {}
