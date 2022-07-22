@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const locationIdFormat = "location:%s"
@@ -37,6 +38,9 @@ var (
 func setupRouter() *gin.Engine {
 
 	r := gin.Default()
+
+	// Metrics Endpoint
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	// Health Check
 	r.GET("/ping", func(c *gin.Context) {
