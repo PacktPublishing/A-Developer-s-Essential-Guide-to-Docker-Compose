@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -40,10 +41,13 @@ func main() {
 					"Records": msgResult.Messages,
 				}
 
+				log.Printf("Dispatching %v received messages", len(msgResult.Messages))
+
 				marshalled, _ := json.Marshal(sqsEvent)
 				http.Post(os.Getenv(S3STORE_LAMBDA_ENDPOINT_ENV), "application/json", bytes.NewBuffer(marshalled))
 
 				for i := 0; i < len(msgResult.Messages); i++ {
+
 					session.DeleteMessage(&sqs.DeleteMessageInput{
 						QueueUrl:      queueUrl,
 						ReceiptHandle: msgResult.Messages[i].ReceiptHandle,
