@@ -11,8 +11,8 @@ resource "aws_cloudwatch_log_group" "task_api" {
   name              = "/ecs/task-api" 
 }
 
-resource "aws_cloudwatch_log_stream" "cb_log_stream" {
-  name           = "tasl-log-stream"
+resource "aws_cloudwatch_log_stream" "task_log_stream" {
+  name           = "task-log-stream"
   log_group_name = aws_cloudwatch_log_group.task_api.name
 }
 
