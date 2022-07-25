@@ -1,0 +1,97 @@
+services:
+  location-service: 
+    container_name: location-service
+    platform: linux/amd64
+    build: 
+      context: ../../Chapter5/location-service/
+    image: developerguidetocomposeacr.azurecr.io/developer-guide-to-compose:location-service_0.1 
+    environment: 
+      - REDIS_HOST=redis:6379 
+    depends_on: 
+      - redis 
+    networks: 
+      - location-network 
+      - redis-network 
+    healthcheck: 
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"] 
+      interval: 10s 
+      timeout: 5s 
+      retries: 5 
+      start_period: 5s 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+  redis: 
+    container_name: redis
+    image: redis 
+    networks:
+      - redis-network
+  event-service: 
+    container_name: event-service
+    platform: linux/amd64    
+    build: 
+      context: ../../Chapter5/events-service/
+    image: developerguidetocomposeacr.azurecr.io/developer-guide-to-compose:events-service_0.1 
+    environment: 
+      - REDIS_HOST=redis:6379 
+    depends_on: 
+      - aci--dns--sidecar
+      - redis 
+    networks: 
+      - redis-network
+    command:
+      - /bin/sh
+      - -c
+      - |
+        sleep 120
+        /events_service
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 1024M 
+  task-manager: 
+    container_name: task-manager
+    platform: linux/amd64
+    build: 
+      context: ../../Chapter5/task-manager/
+    image: developerguidetocomposeacr.azurecr.io/developer-guide-to-compose:task-manager_0.1
+    ports: 
+      - 80:80
+    environment: 
+      - REDIS_HOST=redis:6379 
+      - LOCATION_HOST=http://location-service:8080
+      - TASK_MANAGER_HOST=:80
+    depends_on: 
+      - redis 
+      - location-service
+    networks: 
+      - location-network 
+      - redis-network 
+    healthcheck: 
+      test: ["CMD", "curl", "-f", "http://localhost:80/ping"] 
+      interval: 10s 
+      timeout: 5s 
+      retries: 5 
+      start_period: 5s 
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1024M
+        reservations:
+          cpus: '0.5'
+          memory: 1024M
+    domainname: "developerguidetocompose"
+networks:
+  location-network:
+  redis-network:
