@@ -1,0 +1,617 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  CloudMap:
+    Properties:
+      Description: Service Map for Docker Compose project aws
+      Name: aws.local
+      Vpc: vpc-81111111 
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+  Cluster:
+    Properties:
+      ClusterName: aws
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+    Type: AWS::ECS::Cluster
+  EventserviceService:
+    DependsOn:
+    - RedisService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+        - Cluster
+        - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Ref: RedisnetworkNetwork
+          Subnets:
+          - subnet-a
+          - subnet-b
+          - subnet-c
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - EventserviceServiceDiscoveryEntry
+          - Arn
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      - Key: com.docker.compose.service
+        Value: event-service
+      TaskDefinition:
+        Ref: EventserviceTaskDefinition
+    Type: AWS::ECS::Service
+  EventserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"event-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+        - TTL: 60
+          Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: event-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  EventserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+      - Command:
+        - eu-west-1.compute.internal
+        - aws.local
+        Essential: false
+        Image: docker/ecs-searchdomain-sidecar:1.0
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group:
+              Ref: LogGroup
+            awslogs-region:
+              Ref: AWS::Region
+            awslogs-stream-prefix: aws
+        Name: Eventservice_ResolvConf_InitContainer
+      - DependsOn:
+        - Condition: SUCCESS
+          ContainerName: Eventservice_ResolvConf_InitContainer
+        Environment:
+        - Name: REDIS_HOST
+          Value: redis:6379
+        Essential: true
+        Image: 111111111111.dkr.ecr.eu-west-1.amazonaws.com/developer-guide-to-compose-ecr:events-service_0.1@sha256:30287cf2421e0d4fa8a1f84ca17f1fedd28b8ff2ecdd75897083a657e111879a
+        LinuxParameters: {}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group:
+              Ref: LogGroup
+            awslogs-region:
+              Ref: AWS::Region
+            awslogs-stream-prefix: aws
+        Name: event-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: EventserviceTaskExecutionRole
+      Family: aws-event-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  EventserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Condition: {}
+          Effect: Allow
+          Principal:
+            Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      - Key: com.docker.compose.service
+        Value: event-service
+    Type: AWS::IAM::Role
+  LoadBalancer:
+    Properties:
+      LoadBalancerAttributes:
+      - Key: load_balancing.cross_zone.enabled
+        Value: "true"
+      Scheme: internet-facing
+      Subnets:
+      - subnet-a
+      - subnet-b
+      - subnet-c
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      Type: network
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  Locationnetwork8080Ingress:
+    Properties:
+      CidrIp: 0.0.0.0/0
+      Description: task-manager:8080/tcp on location-network network
+      FromPort: 8080
+      GroupId:
+        Ref: LocationnetworkNetwork
+      IpProtocol: TCP
+      ToPort: 8080
+    Type: AWS::EC2::SecurityGroupIngress
+  LocationnetworkNetwork:
+    Properties:
+      GroupDescription: aws Security Group for location-network network
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      - Key: com.docker.compose.network
+        Value: aws_location-network
+      VpcId: vpc-81111111
+    Type: AWS::EC2::SecurityGroup
+  LocationnetworkNetworkIngress:
+    Properties:
+      Description: Allow communication within network location-network
+      GroupId:
+        Ref: LocationnetworkNetwork
+      IpProtocol: "-1"
+      SourceSecurityGroupId:
+        Ref: LocationnetworkNetwork
+    Type: AWS::EC2::SecurityGroupIngress
+  LocationserviceService:
+    DependsOn:
+    - RedisService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+        - Cluster
+        - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Ref: LocationnetworkNetwork
+          - Ref: RedisnetworkNetwork
+          Subnets:
+          - subnet-a
+          - subnet-b
+          - subnet-c
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - LocationserviceServiceDiscoveryEntry
+          - Arn
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      - Key: com.docker.compose.service
+        Value: location-service
+      TaskDefinition:
+        Ref: LocationserviceTaskDefinition
+    Type: AWS::ECS::Service
+  LocationserviceServiceDiscoveryEntry:
+    Properties:
+      Description: '"location-service" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+        - TTL: 60
+          Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: location-service
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  LocationserviceTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+      - Command:
+        - eu-west-1.compute.internal
+        - aws.local
+        Essential: false
+        Image: docker/ecs-searchdomain-sidecar:1.0
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group:
+              Ref: LogGroup
+            awslogs-region:
+              Ref: AWS::Region
+            awslogs-stream-prefix: aws
+        Name: Locationservice_ResolvConf_InitContainer
+      - DependsOn:
+        - Condition: SUCCESS
+          ContainerName: Locationservice_ResolvConf_InitContainer
+        Environment:
+        - Name: REDIS_HOST
+          Value: redis:6379
+        Essential: true
+        HealthCheck:
+          Command:
+          - CMD
+          - curl
+          - -f
+          - http://localhost:8080/ping
+          Interval: 10
+          Retries: 5
+          StartPeriod: 5
+          Timeout: 5
+        Image: 111111111111.dkr.ecr.eu-west-1.amazonaws.com/developer-guide-to-compose-ecr:location-service_0.1@sha256:d50a4e69922125beee1e9568a7f95f25a6709183dd9ba1ed878d66d9fa0d4b49
+        LinuxParameters: {}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group:
+              Ref: LogGroup
+            awslogs-region:
+              Ref: AWS::Region
+            awslogs-stream-prefix: aws
+        Name: location-service
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: LocationserviceTaskExecutionRole
+      Family: aws-location-service
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  LocationserviceTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Condition: {}
+          Effect: Allow
+          Principal:
+            Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      - Key: com.docker.compose.service
+        Value: location-service
+    Type: AWS::IAM::Role
+  LogGroup:
+    Properties:
+      LogGroupName: /docker-compose/aws
+    Type: AWS::Logs::LogGroup
+  RedisService:
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+        - Cluster
+        - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Ref: RedisnetworkNetwork
+          Subnets:
+          - subnet-a
+          - subnet-b
+          - subnet-c
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - RedisServiceDiscoveryEntry
+          - Arn
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      - Key: com.docker.compose.service
+        Value: redis
+      TaskDefinition:
+        Ref: RedisTaskDefinition
+    Type: AWS::ECS::Service
+  RedisServiceDiscoveryEntry:
+    Properties:
+      Description: '"redis" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+        - TTL: 60
+          Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: redis
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  RedisTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+      - Command:
+        - eu-west-1.compute.internal
+        - aws.local
+        Essential: false
+        Image: docker/ecs-searchdomain-sidecar:1.0
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group:
+              Ref: LogGroup
+            awslogs-region:
+              Ref: AWS::Region
+            awslogs-stream-prefix: aws
+        Name: Redis_ResolvConf_InitContainer
+      - DependsOn:
+        - Condition: SUCCESS
+          ContainerName: Redis_ResolvConf_InitContainer
+        Essential: true
+        Image: docker.io/library/redis:latest@sha256:d581aded52343c461f32e4a48125879ed2596291f4ea4baa7e3af0ad1e56feed
+        LinuxParameters: {}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group:
+              Ref: LogGroup
+            awslogs-region:
+              Ref: AWS::Region
+            awslogs-stream-prefix: aws
+        Name: redis
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: RedisTaskExecutionRole
+      Family: aws-redis
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  RedisTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Condition: {}
+          Effect: Allow
+          Principal:
+            Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      - Key: com.docker.compose.service
+        Value: redis
+    Type: AWS::IAM::Role
+  Redisnetwork8080Ingress:
+    Properties:
+      CidrIp: 0.0.0.0/0
+      Description: task-manager:8080/tcp on redis-network network
+      FromPort: 8080
+      GroupId:
+        Ref: RedisnetworkNetwork
+      IpProtocol: TCP
+      ToPort: 8080
+    Type: AWS::EC2::SecurityGroupIngress
+  RedisnetworkNetwork:
+    Properties:
+      GroupDescription: aws Security Group for redis-network network
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      - Key: com.docker.compose.network
+        Value: aws_redis-network
+      VpcId: vpc-81111111
+    Type: AWS::EC2::SecurityGroup
+  RedisnetworkNetworkIngress:
+    Properties:
+      Description: Allow communication within network redis-network
+      GroupId:
+        Ref: RedisnetworkNetwork
+      IpProtocol: "-1"
+      SourceSecurityGroupId:
+        Ref: RedisnetworkNetwork
+    Type: AWS::EC2::SecurityGroupIngress
+  TaskmanagerService:
+    DependsOn:
+    - TaskmanagerTCP8080Listener
+    - RedisService
+    - LocationserviceService
+    Properties:
+      Cluster:
+        Fn::GetAtt:
+        - Cluster
+        - Arn
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DeploymentController:
+        Type: ECS
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+      - ContainerName: task-manager
+        ContainerPort: 8080
+        TargetGroupArn:
+          Ref: TaskmanagerTCP8080TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - Ref: LocationnetworkNetwork
+          - Ref: RedisnetworkNetwork
+          Subnets:
+          - subnet-a
+          - subnet-b
+          - subnet-c
+      PlatformVersion: 1.4.0
+      PropagateTags: SERVICE
+      SchedulingStrategy: REPLICA
+      ServiceRegistries:
+      - RegistryArn:
+          Fn::GetAtt:
+          - TaskmanagerServiceDiscoveryEntry
+          - Arn
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      - Key: com.docker.compose.service
+        Value: task-manager
+      TaskDefinition:
+        Ref: TaskmanagerTaskDefinition
+    Type: AWS::ECS::Service
+  TaskmanagerServiceDiscoveryEntry:
+    Properties:
+      Description: '"task-manager" service discovery entry in Cloud Map'
+      DnsConfig:
+        DnsRecords:
+        - TTL: 60
+          Type: A
+        RoutingPolicy: MULTIVALUE
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+      Name: task-manager
+      NamespaceId:
+        Ref: CloudMap
+    Type: AWS::ServiceDiscovery::Service
+  TaskmanagerTCP8080Listener:
+    Properties:
+      DefaultActions:
+      - ForwardConfig:
+          TargetGroups:
+          - TargetGroupArn:
+              Ref: TaskmanagerTCP8080TargetGroup
+        Type: forward
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Port: 8080
+      Protocol: TCP
+    Type: AWS::ElasticLoadBalancingV2::Listener
+  TaskmanagerTCP8080TargetGroup:
+    Properties:
+      Port: 8080
+      Protocol: TCP
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      TargetType: ip
+      VpcId: vpc-81111111
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+  TaskmanagerTaskDefinition:
+    Properties:
+      ContainerDefinitions:
+      - Command:
+        - eu-west-1.compute.internal
+        - aws.local
+        Essential: false
+        Image: docker/ecs-searchdomain-sidecar:1.0
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group:
+              Ref: LogGroup
+            awslogs-region:
+              Ref: AWS::Region
+            awslogs-stream-prefix: aws
+        Name: Taskmanager_ResolvConf_InitContainer
+      - DependsOn:
+        - Condition: SUCCESS
+          ContainerName: Taskmanager_ResolvConf_InitContainer
+        Environment:
+        - Name: LOCATION_HOST
+          Value: http://location-service:8080
+        - Name: REDIS_HOST
+          Value: redis:6379
+        Essential: true
+        HealthCheck:
+          Command:
+          - CMD
+          - curl
+          - -f
+          - http://localhost:8080/ping
+          Interval: 10
+          Retries: 5
+          StartPeriod: 5
+          Timeout: 5
+        Image: 111111111111.dkr.ecr.eu-west-1.amazonaws.com/developer-guide-to-compose-ecr:task-manager_0.1@sha256:7fd284cd3f54fdfeba4c47f7f17090387af289f9030cd59284c97a3fa9a0a869
+        LinuxParameters: {}
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group:
+              Ref: LogGroup
+            awslogs-region:
+              Ref: AWS::Region
+            awslogs-stream-prefix: aws
+        Name: task-manager
+        PortMappings:
+        - ContainerPort: 8080
+          HostPort: 8080
+          Protocol: tcp
+      Cpu: "256"
+      ExecutionRoleArn:
+        Ref: TaskmanagerTaskExecutionRole
+      Family: aws-task-manager
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+    Type: AWS::ECS::TaskDefinition
+  TaskmanagerTaskExecutionRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Condition: {}
+          Effect: Allow
+          Principal:
+            Service: ecs-tasks.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      Tags:
+      - Key: com.docker.compose.project
+        Value: aws
+      - Key: com.docker.compose.service
+        Value: task-manager
+    Type: AWS::IAM::Role
